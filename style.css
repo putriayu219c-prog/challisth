@@ -1,0 +1,179 @@
+// Data Barang Produk
+const products = [
+    { id: 1, name: 'Kopi Hitam', price: 12000, icon: '☕' },
+    { id: 2, name: 'Roti Bakar', price: 15000, icon: '🍞' },
+    { id: 3, name: 'Nasi Goreng', price: 22000, icon: '🍳' },
+    { id: 4, name: 'Es Teh Manis', price: 5000, icon: '🍹' },
+    { id: 5, name: 'Mie Goreng', price: 18000, icon: '🍜' },
+    { id: 6, name: 'Air Mineral', price: 4000, icon: '💧' },
+    { id: 7, name: 'Keripik Kentang', price: 10000, icon: '🥔' },
+    { id: 8, name: 'Donat Cokelat', price: 8000, icon: '🍩' }
+];
+
+// State Aplikasi
+let cart = [];
+const TAX_RATE = 0.1; // Pajak 10%
+
+// Element DOM
+const productsGrid = document.getElementById('products-grid');
+const cartItemsContainer = document.getElementById('cart-items');
+const subtotalEl = document.getElementById('subtotal-val');
+const taxEl = document.getElementById('tax-val');
+const totalEl = document.getElementById('total-val');
+const cashInput = document.getElementById('cash-input');
+const changeEl = document.getElementById('change-val');
+const checkoutBtn = document.getElementById('checkout-btn');
+const clearCartBtn = document.getElementById('clear-cart-btn');
+const searchInput = document.getElementById('search-input');
+const receiptModal = document.getElementById('receipt-modal');
+const closeModalBtn = document.getElementById('close-modal-btn');
+
+// Formatter Mata Uang Rupiah
+function formatRupiah(number) {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
+}
+
+// Render Katalog Produk
+function renderProducts(items) {
+    productsGrid.innerHTML = '';
+    items.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+            <div class="icon">${product.icon}</div>
+            <h4>${product.name}</h4>
+            <div class="price">${formatRupiah(product.price)}</div>
+        `;
+        card.addEventListener('click', () => addToCart(product));
+        productsGrid.appendChild(card);
+    });
+}
+
+// Tambah ke Keranjang
+function addToCart(product) {
+    const existingItem = cart.find(item => item.id === product.id);
+    if (existingItem) {
+        existingItem.qty++;
+    } else {
+        cart.push({ ...product, qty: 1 });
+    }
+    updateCartUI();
+}
+
+// Ubah Jumlah Barang di Keranjang
+function updateQty(id, change) {
+    const item = cart.find(item => item.id === id);
+    if (item) {
+        item.qty += change;
+        if (item.qty <= 0) {
+            cart = cart.filter(i => i.id !== id);
+        }
+    }
+    updateCartUI();
+}
+
+// Update Tampilan Keranjang & Kalkulasi
+function updateCartUI() {
+    cartItemsContainer.innerHTML = '';
+
+    if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<p class="empty-cart-msg">Keranjang masih kosong</p>';
+    } else {
+        cart.forEach(item => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'cart-item';
+            itemEl.innerHTML = `
+                <div class="cart-item-info">
+                    <h5>${item.name}</h5>
+                    <span>${formatRupiah(item.price)} x ${item.qty}</span>
+                </div>
+                <div class="cart-controls">
+                    <button onclick="updateQty(${item.id}, -1)">-</button>
+                    <span>${item.qty}</span>
+                    <button onclick="updateQty(${item.id}, 1)">+</button>
+                </div>
+            `;
+            cartItemsContainer.appendChild(itemEl);
+        });
+    }
+
+    calculateTotals();
+}
+
+// Hitung Total, Pajak, dan Kembalian
+function calculateTotals() {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const tax = subtotal * TAX_RATE;
+    const total = subtotal + tax;
+    const cash = parseFloat(cashInput.value) || 0;
+    const change = cash - total;
+
+    subtotalEl.textContent = formatRupiah(subtotal);
+    taxEl.textContent = formatRupiah(tax);
+    totalEl.textContent = formatRupiah(total);
+
+    if (change >= 0 && total > 0) {
+        changeEl.textContent = formatRupiah(change);
+        checkoutBtn.disabled = false;
+    } else {
+        changeEl.textContent = 'Rp 0';
+        checkoutBtn.disabled = true;
+    }
+}
+
+// Event Listeners
+cashInput.addEventListener('input', calculateTotals);
+
+clearCartBtn.addEventListener('click', () => {
+    cart = [];
+    cashInput.value = '';
+    updateCartUI();
+});
+
+searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+    renderProducts(filtered);
+});
+
+// Proses Pembayaran & Tampilkan Struk
+checkoutBtn.addEventListener('click', () => {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const tax = subtotal * TAX_RATE;
+    const total = subtotal + tax;
+    const cash = parseFloat(cashInput.value) || 0;
+    const change = cash - total;
+
+    document.getElementById('receipt-date').textContent = new Date().toLocaleString('id-ID');
+    
+    const itemsList = document.getElementById('receipt-items-list');
+    itemsList.innerHTML = '';
+    cart.forEach(item => {
+        itemsList.innerHTML += `
+            <div class="receipt-item-row">
+                <span>${item.name} x${item.qty}</span>
+                <span>${formatRupiah(item.price * item.qty)}</span>
+            </div>
+        `;
+    });
+
+    document.getElementById('receipt-totals').innerHTML = `
+        <div class="receipt-item-row"><span>Subtotal:</span><span>${formatRupiah(subtotal)}</span></div>
+        <div class="receipt-item-row"><span>Pajak (10%):</span><span>${formatRupiah(tax)}</span></div>
+        <div class="receipt-item-row"><strong>Total:</strong><strong>${formatRupiah(total)}</strong></div>
+        <div class="receipt-item-row"><span>Tunai:</span><span>${formatRupiah(cash)}</span></div>
+        <div class="receipt-item-row"><span>Kembalian:</span><span>${formatRupiah(change)}</span></div>
+    `;
+
+    receiptModal.style.display = 'flex';
+});
+
+closeModalBtn.addEventListener('click', () => {
+    receiptModal.style.display = 'none';
+    cart = [];
+    cashInput.value = '';
+    updateCartUI();
+});
+
+// Inisialisasi awal
+renderProducts(products);
