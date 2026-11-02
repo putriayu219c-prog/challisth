@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Kasir Toko</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="pos-container">
+        <!-- Panel Kiri: Catalog Produk -->
+        <section class="products-section">
+            <header class="section-header">
+                <h2>🛒 Katalog Produk</h2>
+                <input type="text" id="search-input" placeholder="Cari barang...">
+            </header>
+
+            <div class="products-grid" id="products-grid">
+                <!-- Produk akan di-render oleh JavaScript -->
+            </div>
+        </section>
+
+        <!-- Panel Kanan: Keranjang & Pembayaran -->
+        <section class="cart-section">
+            <header class="section-header">
+                <h2>📋 Pesanan</h2>
+                <button id="clear-cart-btn" class="btn-text">Kosongkan</button>
+            </header>
+
+            <!-- List Keranjang -->
+            <div class="cart-items" id="cart-items">
+                <p class="empty-cart-msg">Keranjang masih kosong</p>
+            </div>
+
+            <!-- Ringkasan Pembayaran -->
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal-val">Rp 0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Pajak (10%)</span>
+                    <span id="tax-val">Rp 0</span>
+                </div>
+                <div class="summary-row total-row">
+                    <span>Total</span>
+                    <span id="total-val">Rp 0</span>
+                </div>
+
+                <div class="payment-input-group">
+                    <label for="cash-input">Uang Dibayar (Rp)</label>
+                    <input type="number" id="cash-input" placeholder="0" min="0">
+                </div>
+
+                <div class="summary-row change-row">
+                    <span>Kembalian</span>
+                    <span id="change-val">Rp 0</span>
+                </div>
+
+                <button id="checkout-btn" class="btn-checkout" disabled>Bayar Sekarang</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal Struk Pembayaran -->
+    <div class="modal" id="receipt-modal">
+        <div class="modal-content">
+            <div class="receipt-header">
+                <h3>TOKO SERBA ADA</h3>
+                <p>Jl. Merdeka No. 123, Jakarta</p>
+                <p id="receipt-date"></p>
+            </div>
+            <hr>
+            <div id="receipt-items-list"></div>
+            <hr>
+            <div class="receipt-totals" id="receipt-totals"></div>
+            <hr>
+            <p class="receipt-footer">Terima Kasih Atas Kunjungan Anda!</p>
+            
+            <div class="modal-actions">
+                <button onclick="window.print()" class="btn-print">Cetak Nota</button>
+                <button id="close-modal-btn" class="btn-close">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
